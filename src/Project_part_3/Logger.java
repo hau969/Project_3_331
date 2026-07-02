@@ -12,14 +12,11 @@ public class Logger implements Runnable {
 
     @Override
     public void run() {
-
-        // Logger thread starts
         System.out.println("[" + System.currentTimeMillis() + "] [LOW] Logger started.");
 
-        // Simulate logging activity using the shared motor
+        // Request the motor control lock for 400ms
         motor.executeAction("Logger", "Logging system data", 400, priority);
 
-        // Logger finishes
         System.out.println("[" + System.currentTimeMillis() + "] [LOW] Logger finished.");
     }
 }

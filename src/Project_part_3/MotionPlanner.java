@@ -4,22 +4,16 @@ public class MotionPlanner implements Runnable {
 
     @Override
     public void run() {
-
-        // Motion planner starts running
         System.out.println("[" + System.currentTimeMillis() + "] [MED] Motion Planner started.");
+        System.out.println("[" + System.currentTimeMillis() + "] [MED] Motion Planner is actively burning CPU cycles...");
 
-        // Simulate the thread doing a lot of processing
-        System.out.println("[" + System.currentTimeMillis() + "] [MED] Motion Planner is using the CPU...");
-
-        try {
-            // Delay to represent a long calculation
-            Thread.sleep(1000);
-
-        } catch (InterruptedException e) {
-            System.out.println("Motion Planner was interrupted.");
+        // Actively hog the CPU for 1000ms instead of sleeping
+        long startTime = System.currentTimeMillis();
+        while (System.currentTimeMillis() - startTime < 1000) {
+            // Busy-wait loop simulating intensive calculations
+            Math.sin(Math.random()); 
         }
 
-        // Finished processing
         System.out.println("[" + System.currentTimeMillis() + "] [MED] Motion Planner finished.");
     }
 }
