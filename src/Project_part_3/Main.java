@@ -25,7 +25,7 @@ public class Main {
         // motion planner runs second (medium priority)
         RealtimeThread motionThread = new RealtimeThread(
                 mediumPriority, null, null, null, null,
-                new MotionPlanner());
+                new MotionPlanner(motor));
 
         // safety monitor runs last (high priority)
         RealtimeThread safetyThread = new RealtimeThread(
