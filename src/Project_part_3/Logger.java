@@ -12,9 +12,10 @@ public class Logger implements Runnable {
 
     @Override
     public void run() {
+
         System.out.println("[" + System.currentTimeMillis() + "] [LOW] Logger started.");
 
-        // Request the motor control lock for 400ms
+        // try to use the motor resource for a short time
         motor.executeAction("Logger", "Logging system data", 400, priority);
 
         System.out.println("[" + System.currentTimeMillis() + "] [LOW] Logger finished.");

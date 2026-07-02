@@ -6,46 +6,51 @@ import javax.realtime.RealtimeThread;
 public class Main {
 
     public static void main(String[] args) {
-        // Shared motor resource
+
+        // shared motor object used by all threads
         MotorController motor = new MotorController();
 
-        // Assign thread priorities
+        // setting priorities for each thread
         PriorityParameters lowPriority = new PriorityParameters(11);
         PriorityParameters mediumPriority = new PriorityParameters(15);
         PriorityParameters highPriority = new PriorityParameters(20);
 
-        // Instantiate Real-time threads
+        // creating the real-time threads
+
+        // logger runs first (low priority)
         RealtimeThread loggerThread = new RealtimeThread(
                 lowPriority, null, null, null, null,
                 new Logger(motor, 11));
 
+        // motion planner runs second (medium priority)
         RealtimeThread motionThread = new RealtimeThread(
                 mediumPriority, null, null, null, null,
                 new MotionPlanner());
 
+        // safety monitor runs last (high priority)
         RealtimeThread safetyThread = new RealtimeThread(
                 highPriority, null, null, null, null,
                 new SafetyMonitor(motor, 20));
 
+        // naming threads just for easier debugging
         loggerThread.setName("LoggerThread");
         motionThread.setName("MotionThread");
         safetyThread.setName("SafetyThread");
 
-        System.out.println("--- STARTING RTSJ PRIORITY INHERITANCE TEST ---");
+        System.out.println("--- STARTING RTSJ PRIORITY CEILING TEST ---");
 
         try {
-            // 1. Logger starts at 0ms and immediately gets the lock
+            // start logger first
             loggerThread.start();
-            Thread.sleep(50); 
-            
-            // 2. Motion Planner starts at 50ms and preempts Logger because it's higher priority
-            motionThread.start(); 
-            Thread.sleep(50); 
-            
-            // 3. Safety Monitor starts at 100ms, preempts Motion Planner, and blocks on Logger.
-            // This triggers Priority Inheritance.
-            safetyThread.start(); 
-            
+            Thread.sleep(50);
+
+            // start motion planner after a short delay
+            motionThread.start();
+            Thread.sleep(50);
+
+            // start safety monitor last
+            safetyThread.start();
+
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

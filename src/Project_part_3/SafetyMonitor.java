@@ -12,15 +12,18 @@ public class SafetyMonitor implements Runnable {
 
     @Override
     public void run() {
+
         System.out.println("[" + System.currentTimeMillis() + "] [HIGH] Safety Monitor started.");
-        System.out.println("[" + System.currentTimeMillis() + "] [HIGH] Trying to access motor...");
+        System.out.println("[" + System.currentTimeMillis() + "] [HIGH] trying to access motor...");
 
         long start = System.currentTimeMillis();
 
-        // High priority request to use the motor
+        // high priority thread trying to use motor resource
         motor.executeAction("SafetyMonitor", "Emergency stop check", 50, priority);
 
         long end = System.currentTimeMillis();
+
+        // measure how long it had to wait
         long waitTime = end - start;
 
         System.out.println("Safety Monitor wait time: " + waitTime + " ms");
