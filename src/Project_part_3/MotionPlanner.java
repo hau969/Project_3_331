@@ -2,26 +2,23 @@ package Project_part_3;
 
 public class MotionPlanner implements Runnable {
 
-    private MotorController motor; // Added to store the reference
-
-    // Updated constructor to accept the motor object
-    public MotionPlanner(MotorController motor) {
-        this.motor = motor;
-    }
-
     @Override
     public void run() {
-        System.out.println("[" + System.currentTimeMillis() + "] [MED] Motion Planner started.");
-        System.out.println("[" + System.currentTimeMillis() + "] [MED] Motion Planner is running...");
 
-        // simulate CPU-heavy work (instead of sleep)
+        // Show that the Motion Planner has started
+        System.out.println("[" + System.currentTimeMillis() + "] [MED] Motion Planner started.");
+        System.out.println("[" + System.currentTimeMillis() + "] [MED] Motion Planner is actively burning CPU cycles...");
+
+        // Keep the CPU busy for about 1 second
         long startTime = System.currentTimeMillis();
 
-        // busy loop to keep CPU busy for ~1 second
         while (System.currentTimeMillis() - startTime < 1000) {
+
+            // Simulate some processing work
             Math.sin(Math.random());
         }
 
+        // Show that the Motion Planner has finished
         System.out.println("[" + System.currentTimeMillis() + "] [MED] Motion Planner finished.");
     }
 }

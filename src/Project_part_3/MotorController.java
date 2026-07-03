@@ -2,62 +2,103 @@ package Project_part_3;
 
 import javax.realtime.MonitorControl;
 import javax.realtime.PriorityCeilingEmulation;
-import javax.realtime.PriorityScheduler;
+import javax.realtime.PriorityInheritance;
 
 public class MotorController {
 
-    // keeps track of which thread is currently using the motor
     private Thread currentThread = null;
+    private String protocolName;
 
-    public MotorController() {
+    public MotorController(String protocolType) {
 
-        // set the monitor ceiling to the highest possible priority
-        int maxPriority = PriorityScheduler.instance().getMaxPriority();
-        PriorityCeilingEmulation ceiling = PriorityCeilingEmulation.instance(maxPriority);
+        if (protocolType.equalsIgnoreCase("CEILING")) {
 
-        // apply priority ceiling protocol to this object
-        MonitorControl.setMonitorControl(this, ceiling);
+            protocolName = "Priority Ceiling";
+
+            int maxPriority = 10;
+            PriorityCeilingEmulation ceiling = PriorityCeilingEmulation.instance(maxPriority);
+            MonitorControl.setMonitorControl(this, ceiling);
+
+        } else {
+
+            protocolName = "Priority Inheritance";
+
+            PriorityInheritance inheritance = PriorityInheritance.instance();
+            MonitorControl.setMonitorControl(this, inheritance);
+        }
     }
 
     public void executeAction(String threadName, String action, int delay, int priority) {
 
         Thread thread = Thread.currentThread();
+        int originalPriority = thread.getPriority();
+
+        // If using PCP, boost Logger when it enters the monitor
+        if (protocolName.equals("Priority Ceiling") && threadName.equalsIgnoreCase("Logger")) {
+
+            System.out.println("\n>>> [PCP] " + threadName + " entering monitor, priority boosted from " + originalPriority + " to 9 <<<\n");
+
+            thread.setPriority(9);
+        }
 
         synchronized (this) {
 
-            // if another thread is using the motor, wait
-            while (currentThread != null) {
-                try {
-                    this.wait();
-                } catch (InterruptedException e) {
-                    System.out.println(threadName + " got interrupted while waiting.");
+            // If using PIP, check if SafetyMonitor is blocked and adjust priority
+            if (protocolName.equals("Priority Inheritance")&& threadName.equalsIgnoreCase("SafetyMonitor")) {
+
+                if (currentThread != null && currentThread.getPriority() < priority) {
+
+                    System.out.println("\n>>> [PIP] " + threadName + " blocked by " + currentThread.getName()  + ", increasing its priority to " + priority + " <<<\n");
+
+                    currentThread.setPriority(priority);
                 }
             }
 
-            // current thread now takes control of the motor
+            // Wait until motor is free
+            while (currentThread != null) {
+                try {
+                    wait();
+                } catch (InterruptedException e) {
+                    System.out.println(threadName + " interrupted while waiting");
+                }
+            }
+
             currentThread = thread;
 
-            System.out.println("\n>>> " + threadName + " entered the motor section.");
-            System.out.println("[" + System.currentTimeMillis() + "] "
-                    + threadName + " locked the motor: " + action);
+            System.out.println("\n>>> [" + protocolName + "] " + threadName + " entered monitor");
+            System.out.println("[" + System.currentTimeMillis() + "] " + threadName + " acquired lock: " + action);
 
             try {
-                // simulate work being done on the motor
-                Thread.sleep(delay);
+
+                int timeElapsed = 0;
+
+                while (timeElapsed < delay) {
+
+                    Thread.sleep(50);
+                    timeElapsed += 50;
+
+                    // Only log details for Logger thread
+                    if (threadName.equalsIgnoreCase("Logger")) {
+                        System.out.println("    -> Logger running... priority: "
+                                + thread.getPriority());
+                    }
+                }
+
             } catch (InterruptedException e) {
-                System.out.println(threadName + " got interrupted while using the motor.");
+                System.out.println(threadName + " interrupted while using motor");
             }
 
             System.out.println("[" + System.currentTimeMillis() + "] "
-                    + threadName + " finished and released the motor.");
+                    + threadName + " released lock");
 
-            // free the motor
             currentThread = null;
 
-            System.out.println("<<< " + threadName + " left the motor section.\n");
+            System.out.println("<<< [" + protocolName + "] " + threadName + " left monitor\n");
 
-            // wake up other waiting threads
-            this.notifyAll();
+            // reset priority
+            thread.setPriority(originalPriority);
+
+            notifyAll();
         }
     }
 }
